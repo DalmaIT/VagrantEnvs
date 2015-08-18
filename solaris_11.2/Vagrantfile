@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+VMNAME = File.basename(Dir.getwd)
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+    config.vm.box = "solaris/11.2"
+    #config.vm.box = "http://www.benden.us/vagrant/solaris-11.2.box"
+    config.vm.box_check_update = false
+    # config.vm.hostname = VMNAME
+
+    if Vagrant.has_plugin?("vagrant-cachier")
+        config.cache.auto_detect = true
+    end
+
+    #config.vm.network "forwarded_port", guest: 8087, host: 8087 # Forward riak
+
+    # Uncomment this lines if you want a shared synchronzied folder between your local environment and the Virtual Machine.
+    config.vm.synced_folder "tools", "/opt/tools", disabled: true
+
+    config.vm.provider :virtualbox do |vb|
+        # Don't boot with headless mode
+        vb.gui = false
+        vb.name = "solaris11.2dev"
+        vb.cpus = 2
+        # Use VBoxManage to customize the VM. For example to change memory:
+        vb.customize ["modifyvm", :id, "--memory", "2048"]
+    end
+
+    # plugin conflict
+    if Vagrant.has_plugin?("vagrant-vbguest") then
+        config.vbguest.auto_update = false
+    end
+
+    # Start the provisioner:
+    # (fixes the 'stdin is not a tty' error when shell provisioning)
+    config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
+    #config.vm.provision :shell, :path => "scripts/install-xxx.sh", :args => "-h 127.0.0.1"
+    #config.vm.provision :shell, :path => "./tools/alimirror.sh", privileged: true
+
+    config.vm.provision :shell do |shell|
+        shell.inline = "echo \"Hello world!:\";
+                        echo"
+    end
+
+end
